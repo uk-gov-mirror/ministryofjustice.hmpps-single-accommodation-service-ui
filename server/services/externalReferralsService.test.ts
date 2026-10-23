@@ -20,6 +20,7 @@ describe('ExternalReferralsService', () => {
   const id = '1234'
 
   beforeEach(() => {
+    jest.clearAllMocks()
     service = new ExternalReferralsService(client)
   })
 
@@ -60,9 +61,23 @@ describe('ExternalReferralsService', () => {
     const result = await service.search(token, crn)
 
     expect(client.search).toHaveBeenCalledTimes(1)
-    expect(client.search).toHaveBeenCalledWith(token, crn)
+    expect(client.search).toHaveBeenCalledWith(token, crn, undefined)
     expect(result).toEqual(response)
   })
+
+  it.each([true, false])(
+    'should call search on the api client with excludeWithdrawnReferrals=%s and return the response',
+    async excludeWithdrawnReferrals => {
+      const response = apiResponseFactory.externalReferrals(externalReferralFactory.buildList(2))
+      client.search.mockResolvedValue(response)
+
+      const result = await service.search(token, crn, excludeWithdrawnReferrals)
+
+      expect(client.search).toHaveBeenCalledTimes(1)
+      expect(client.search).toHaveBeenCalledWith(token, crn, excludeWithdrawnReferrals)
+      expect(result).toEqual(response)
+    },
+  )
 
   it('should call getTimeline on the api client and return the result', async () => {
     const timeline = auditRecordFactory.buildList(2)

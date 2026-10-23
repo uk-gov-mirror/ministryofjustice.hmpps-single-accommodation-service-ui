@@ -44,6 +44,35 @@ describeClient('ExternalReferralsClient', provider => {
     expect(response).toEqual(body)
   })
 
+  it.each([true, false])(
+    'search - should send excludeWithdrawnReferrals=%s as a query parameter and return the response',
+    async excludeWithdrawnReferrals => {
+      const referrals = externalReferralFactory.submitted().buildList(2)
+      const body = apiResponseFactory.externalReferrals(referrals)
+      const crn = crnFactory()
+
+      await provider.addInteraction({
+        state: 'external referrals exist with',
+        uponReceiving: `a request to get external referrals with excludeWithdrawnReferrals=${excludeWithdrawnReferrals}`,
+        withRequest: {
+          method: 'GET',
+          path: apiPaths.cases.externalReferrals.search({ crn }),
+          query: { excludeWithdrawnReferrals: String(excludeWithdrawnReferrals) },
+          headers: {
+            authorization: 'Bearer test-user-token',
+          },
+        },
+        willRespondWith: {
+          status: 200,
+          body,
+        },
+      })
+
+      const response = await client.search('test-user-token', crn, excludeWithdrawnReferrals)
+      expect(response).toEqual(body)
+    },
+  )
+
   it('should make a GET request to /cases/{crn}/other-accommodation-referral/{id} and return the response body', async () => {
     const referral = externalReferralFactory.submitted().build()
     const body = apiResponseFactory.externalReferral(referral)
