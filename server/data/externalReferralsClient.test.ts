@@ -20,32 +20,8 @@ describeClient('ExternalReferralsClient', provider => {
     client = new ExternalReferralsClient(mockAuthenticationClient)
   })
 
-  it('search - should make a get request to /cases/{crn}/external-accommodation-referral/search and return response', async () => {
-    const referrals = externalReferralFactory.submitted().buildList(2)
-    const body = apiResponseFactory.externalReferrals(referrals)
-    const crn = crnFactory()
-
-    await provider.addInteraction({
-      state: `external referrals exist with`,
-      uponReceiving: 'a request to get all external referrals for a crn',
-      withRequest: {
-        method: 'GET',
-        path: apiPaths.cases.externalReferrals.search({ crn }),
-        headers: {
-          authorization: 'Bearer test-user-token',
-        },
-      },
-      willRespondWith: {
-        status: 200,
-        body,
-      },
-    })
-    const response = await client.search('test-user-token', crn)
-    expect(response).toEqual(body)
-  })
-
-  it.each([true, false])(
-    'search - should send excludeWithdrawnReferrals=%s as a query parameter and return the response',
+  it.each([true, false, undefined])(
+    'search - should handle excludeWithdrawnReferrals=%s and return the response',
     async excludeWithdrawnReferrals => {
       const referrals = externalReferralFactory.submitted().buildList(2)
       const body = apiResponseFactory.externalReferrals(referrals)
@@ -57,7 +33,10 @@ describeClient('ExternalReferralsClient', provider => {
         withRequest: {
           method: 'GET',
           path: apiPaths.cases.externalReferrals.search({ crn }),
-          query: { excludeWithdrawnReferrals: String(excludeWithdrawnReferrals) },
+          query:
+            excludeWithdrawnReferrals === undefined
+              ? {}
+              : { excludeWithdrawnReferrals: String(excludeWithdrawnReferrals) },
           headers: {
             authorization: 'Bearer test-user-token',
           },

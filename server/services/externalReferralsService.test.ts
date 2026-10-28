@@ -54,18 +54,7 @@ describe('ExternalReferralsService', () => {
     expect(client.update).toHaveBeenCalledWith(token, crn, id, command)
   })
 
-  it('should call search on the api client once and return the response', async () => {
-    const response = apiResponseFactory.externalReferrals(externalReferralFactory.buildList(2))
-    client.search.mockResolvedValue(response)
-
-    const result = await service.search(token, crn)
-
-    expect(client.search).toHaveBeenCalledTimes(1)
-    expect(client.search).toHaveBeenCalledWith(token, crn, undefined)
-    expect(result).toEqual(response)
-  })
-
-  it.each([true, false])(
+  it.each([true, false, undefined])(
     'should call search on the api client with excludeWithdrawnReferrals=%s and return the response',
     async excludeWithdrawnReferrals => {
       const response = apiResponseFactory.externalReferrals(externalReferralFactory.buildList(2))

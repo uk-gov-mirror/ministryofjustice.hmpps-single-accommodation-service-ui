@@ -48,7 +48,8 @@ export default {
     stubFor({
       request: {
         method: 'GET',
-        urlPattern: apiPaths.cases.externalReferrals.search({ crn }),
+        urlPathPattern: apiPaths.cases.externalReferrals.search({ crn }),
+        queryParameters: { excludeWithdrawnReferrals: { equalTo: 'true' } },
       },
       response: {
         status: 200,
